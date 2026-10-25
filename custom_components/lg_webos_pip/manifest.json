@@ -1,0 +1,13 @@
+{
+  "domain": "lg_webos_pip",
+  "name": "LG webOS PIP",
+  "after_dependencies": ["webostv"],
+  "codeowners": ["@iDaddyCz"],
+  "config_flow": true,
+  "documentation": "https://github.com/iDaddyCz/ha-lg-webos-pip",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/iDaddyCz/ha-lg-webos-pip/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

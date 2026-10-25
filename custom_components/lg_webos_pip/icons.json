@@ -1,0 +1,18 @@
+{
+  "entity": {
+    "button": {
+      "send_connection": { "default": "mdi:key-arrow-right" },
+      "open_setup": { "default": "mdi:television-guide" },
+      "close_pip": { "default": "mdi:picture-in-picture-top-right-outline" },
+      "test": { "default": "mdi:play-box-outline" }
+    },
+    "switch": {
+      "enabled": { "default": "mdi:bell-ring-outline" }
+    }
+  },
+  "services": {
+    "show": { "service": "mdi:picture-in-picture-top-right" },
+    "close": { "service": "mdi:close-box-outline" },
+    "send_connection": { "service": "mdi:key-arrow-right" }
+  }
+}
