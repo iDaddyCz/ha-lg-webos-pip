@@ -7,9 +7,10 @@ import logging
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry, ConfigSubentry
-from homeassistant.const import ATTR_ENTITY_ID, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
+from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 
 from .const import (
@@ -69,6 +70,26 @@ class PipController:
         state = self.hass.states.get(self.tv_entity_id)
         return state is not None and state.state == STATE_ON
 
+    @property
+    def screen_is_off(self) -> bool:
+        """True in the TV's screen-off mode: the TV is on, but the picture is off."""
+        registry = er.async_get(self.hass)
+        tv = registry.async_get(self.tv_entity_id)
+        if tv is None or tv.config_entry_id is None:
+            return False
+        tv_entry = self.hass.config_entries.async_get_entry(tv.config_entry_id)
+        if tv_entry is None:
+            return False
+        # The webOS TV integration tracks it on its client...
+        client = getattr(getattr(tv_entry, "runtime_data", None), "client", None)
+        is_screen_on = getattr(getattr(client, "tv_state", None), "is_screen_on", None)
+        if is_screen_on is not None:
+            return not is_screen_on
+        # ...and shows it as a screen switch (disabled by default).
+        switch = registry.async_get_entity_id("switch", WEBOSTV_DOMAIN, f"{tv_entry.unique_id}_screen")
+        state = self.hass.states.get(switch) if switch else None
+        return state is not None and state.state == STATE_OFF
+
     def _connection(self) -> dict[str, str] | None:
         """URL + token for the TV app, if the user stored a token here."""
         cfg = self._config
@@ -98,18 +119,25 @@ class PipController:
             params["connect"] = connection
         return params
 
-    async def _launch(self, params: dict[str, Any], *, raise_if_off: bool) -> None:
-        """Launch the app, but only while the TV is on.
+    async def _launch(self, params: dict[str, Any], *, raise_if_off: bool, screen_off_ok: bool = False) -> None:
+        """Launch the app, but only while the TV is on and its screen is too.
 
         Triggers and actions skip quietly when it's off; buttons pressed by a
-        user raise so the UI says why nothing happened.
+        user raise so the UI says why nothing happened. `screen_off_ok` lets
+        commands that show nothing (close) through in screen-off mode.
         """
         if not self.hass.services.has_service(WEBOSTV_DOMAIN, "command"):
             raise HomeAssistantError("The LG webOS TV integration is not set up")
         if not self.tv_is_on:
+            reason = "is off"
+        elif not screen_off_ok and self.screen_is_off:
+            reason = "has its screen turned off"
+        else:
+            reason = None
+        if reason:
             if raise_if_off:
-                raise HomeAssistantError(f"{self.tv_entity_id} is off")
-            _LOGGER.debug("Not launching on %s: the TV is off", self.tv_entity_id)
+                raise HomeAssistantError(f"{self.tv_entity_id} {reason}")
+            _LOGGER.debug("Not launching on %s: the TV %s", self.tv_entity_id, reason)
             return
         _LOGGER.debug("Launching %s on %s with %s", self.app_id, self.tv_entity_id,
                       {k: v for k, v in params.items() if k != "connect"})
@@ -131,7 +159,7 @@ class PipController:
         await self._launch(params, raise_if_off=raise_if_off)
 
     async def async_close(self, *, raise_if_off: bool = False) -> None:
-        await self._launch({"close": True}, raise_if_off=raise_if_off)
+        await self._launch({"close": True}, raise_if_off=raise_if_off, screen_off_ok=True)
 
     async def async_send_connection(self) -> None:
         connection = self._connection()
