@@ -1,0 +1,60 @@
+show:
+  fields:
+    tv:
+      selector:
+        entity:
+          domain: media_player
+          integration: webostv
+    camera:
+      selector:
+        entity:
+          domain: camera
+    url:
+      selector:
+        text:
+    title:
+      selector:
+        text:
+    mode:
+      selector:
+        select:
+          options: [mjpeg, snapshot, hls, webrtc]
+          translation_key: mode
+    position:
+      selector:
+        select:
+          options: [top-right, top-left, bottom-right, bottom-left]
+          translation_key: position
+    size:
+      selector:
+        number:
+          min: 10
+          max: 100
+          step: 5
+          unit_of_measurement: "%"
+    timeout:
+      selector:
+        number:
+          min: 0
+          max: 3600
+          unit_of_measurement: s
+          mode: box
+    muted:
+      selector:
+        boolean:
+
+close:
+  fields:
+    tv:
+      selector:
+        entity:
+          domain: media_player
+          integration: webostv
+
+send_connection:
+  fields:
+    tv:
+      selector:
+        entity:
+          domain: media_player
+          integration: webostv

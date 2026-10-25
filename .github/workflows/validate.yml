@@ -8,6 +8,23 @@ on:
     - cron: "0 4 * * 1"
 
 jobs:
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: home-assistant/actions/hassfest@master
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - run: pip install -r requirements_test.txt
+      - run: python scripts/gen_translations.py --check
+      - run: pytest -q
+
   tv-app:
     runs-on: ubuntu-latest
     defaults:

@@ -1,0 +1,227 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Show PIP on an LG webOS TV",
+        "description": "Pick the TV (from the LG webOS TV integration). The HA PIP app must be installed on it; see the README.\n\nThe URL and access token are optional. When set, they are sent to the TV app so you don't have to type the token with the remote.",
+        "data": {
+          "tv": "TV",
+          "ha_url": "Home Assistant URL as seen from the TV",
+          "token": "Long-lived access token for the TV app",
+          "mode": "Default stream type",
+          "position": "Default position",
+          "size": "Default size",
+          "timeout": "Default close after",
+          "app_id": "TV app ID"
+        },
+        "data_description": {
+          "ha_url": "Usually your internal URL, e.g. http://192.168.1.10:8123. Don't use homeassistant.local if the TV can't resolve it.",
+          "token": "Create it under your profile → Security → Long-lived access tokens. A dedicated non-admin user is a good idea.",
+          "mode": "MJPEG works best over live TV. HLS and WebRTC need a second video decoder, which depends on the TV.",
+          "size": "PIP width as a percentage of the screen width.",
+          "timeout": "Seconds until the PIP closes itself. 0 keeps it open until closed.",
+          "app_id": "Only change this if you built the TV app with a different ID."
+        }
+      }
+    },
+    "abort": {
+      "no_tv": "No LG webOS TV found. Set up the LG webOS TV integration first.",
+      "already_configured": "PIP is already set up for this TV."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "PIP settings",
+        "data": {
+          "ha_url": "[%key:component::lg_webos_pip::config::step::user::data::ha_url%]",
+          "token": "[%key:component::lg_webos_pip::config::step::user::data::token%]",
+          "mode": "[%key:component::lg_webos_pip::config::step::user::data::mode%]",
+          "position": "[%key:component::lg_webos_pip::config::step::user::data::position%]",
+          "size": "[%key:component::lg_webos_pip::config::step::user::data::size%]",
+          "timeout": "[%key:component::lg_webos_pip::config::step::user::data::timeout%]",
+          "app_id": "[%key:component::lg_webos_pip::config::step::user::data::app_id%]"
+        },
+        "data_description": {
+          "ha_url": "[%key:component::lg_webos_pip::config::step::user::data_description::ha_url%]",
+          "token": "[%key:component::lg_webos_pip::config::step::user::data_description::token%]",
+          "mode": "[%key:component::lg_webos_pip::config::step::user::data_description::mode%]",
+          "size": "[%key:component::lg_webos_pip::config::step::user::data_description::size%]",
+          "timeout": "[%key:component::lg_webos_pip::config::step::user::data_description::timeout%]",
+          "app_id": "[%key:component::lg_webos_pip::config::step::user::data_description::app_id%]"
+        }
+      }
+    }
+  },
+  "config_subentries": {
+    "trigger": {
+      "initiate_flow": {
+        "user": "Add PIP trigger"
+      },
+      "entry_type": "PIP trigger",
+      "step": {
+        "user": {
+          "title": "PIP trigger",
+          "description": "When one of the entities changes to the trigger state while the TV is on, show a camera or URL on the TV.",
+          "data": {
+            "name": "Name",
+            "trigger_entities": "Trigger entities",
+            "trigger_state": "Trigger state",
+            "camera": "Camera",
+            "url": "Or a URL",
+            "title": "Label",
+            "mode": "Stream type",
+            "position": "Position",
+            "size": "Size",
+            "timeout": "Close after"
+          },
+          "data_description": {
+            "trigger_entities": "e.g. a doorbell binary sensor or event entity.",
+            "trigger_state": "Leave empty: binary sensors, switches and input booleans fire on \"on\", everything else (e.g. event entities) on any change.",
+            "url": "Instead of a camera: an HLS (.m3u8), MJPEG or video URL, or an HA path like /media/local/clip.mp4.",
+            "title": "Text shown in the PIP. Defaults to the camera name.",
+            "mode": "Leave empty to use the TV's default.",
+            "position": "Leave empty to use the TV's default.",
+            "size": "Leave empty to use the TV's default.",
+            "timeout": "Leave empty to use the TV's default."
+          }
+        },
+        "reconfigure": {
+          "title": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::title%]",
+          "description": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::description%]",
+          "data": {
+            "name": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data::name%]",
+            "trigger_entities": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data::trigger_entities%]",
+            "trigger_state": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data::trigger_state%]",
+            "camera": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data::camera%]",
+            "url": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data::url%]",
+            "title": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data::title%]",
+            "mode": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data::mode%]",
+            "position": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data::position%]",
+            "size": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data::size%]",
+            "timeout": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data::timeout%]"
+          },
+          "data_description": {
+            "trigger_entities": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data_description::trigger_entities%]",
+            "trigger_state": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data_description::trigger_state%]",
+            "url": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data_description::url%]",
+            "title": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data_description::title%]",
+            "mode": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data_description::mode%]",
+            "position": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data_description::position%]",
+            "size": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data_description::size%]",
+            "timeout": "[%key:component::lg_webos_pip::config_subentries::trigger::step::user::data_description::timeout%]"
+          }
+        }
+      },
+      "error": {
+        "camera_or_url": "Choose either a camera or a URL."
+      },
+      "abort": {
+        "reconfigure_successful": "PIP trigger updated."
+      }
+    }
+  },
+  "selector": {
+    "mode": {
+      "options": {
+        "mjpeg": "MJPEG (best over live TV)",
+        "snapshot": "Snapshots (works with every camera)",
+        "hls": "HLS video",
+        "webrtc": "WebRTC (lowest latency)"
+      }
+    },
+    "position": {
+      "options": {
+        "top-right": "Top right",
+        "top-left": "Top left",
+        "bottom-right": "Bottom right",
+        "bottom-left": "Bottom left"
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "send_connection": {
+        "name": "Send connection to TV"
+      },
+      "open_setup": {
+        "name": "Open setup on TV"
+      },
+      "close_pip": {
+        "name": "Close PIP"
+      },
+      "test": {
+        "name": "Test"
+      }
+    },
+    "switch": {
+      "enabled": {
+        "name": "Enabled"
+      }
+    }
+  },
+  "services": {
+    "show": {
+      "name": "Show PIP",
+      "description": "Shows a camera or URL as picture-in-picture on the TV. Does nothing while the TV is off.",
+      "fields": {
+        "tv": {
+          "name": "TV",
+          "description": "The TV's media player. Optional when only one TV is set up."
+        },
+        "camera": {
+          "name": "Camera",
+          "description": "Camera entity to show."
+        },
+        "url": {
+          "name": "URL",
+          "description": "Instead of a camera: HLS, MJPEG or video URL, or an HA path like /media/local/clip.mp4."
+        },
+        "title": {
+          "name": "Label",
+          "description": "Text shown in the PIP."
+        },
+        "mode": {
+          "name": "Stream type",
+          "description": "mjpeg, snapshot, hls or webrtc."
+        },
+        "position": {
+          "name": "Position",
+          "description": "Corner of the screen."
+        },
+        "size": {
+          "name": "Size",
+          "description": "Width in percent of the screen width."
+        },
+        "timeout": {
+          "name": "Close after",
+          "description": "Seconds until it closes; 0 = stays open."
+        },
+        "muted": {
+          "name": "Muted",
+          "description": "Mute audio (HLS, WebRTC and video URLs)."
+        }
+      }
+    },
+    "close": {
+      "name": "Close PIP",
+      "description": "Closes the PIP on the TV. Does nothing while the TV is off.",
+      "fields": {
+        "tv": {
+          "name": "[%key:component::lg_webos_pip::services::show::fields::tv::name%]",
+          "description": "[%key:component::lg_webos_pip::services::show::fields::tv::description%]"
+        }
+      }
+    },
+    "send_connection": {
+      "name": "Send connection to TV",
+      "description": "Sends the Home Assistant URL and access token from the integration options to the TV app.",
+      "fields": {
+        "tv": {
+          "name": "[%key:component::lg_webos_pip::services::show::fields::tv::name%]",
+          "description": "[%key:component::lg_webos_pip::services::show::fields::tv::description%]"
+        }
+      }
+    }
+  }
+}
