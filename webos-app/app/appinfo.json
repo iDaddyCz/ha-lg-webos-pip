@@ -1,0 +1,15 @@
+{
+  "id": "io.github.idaddycz.lgwebospip",
+  "version": "1.0.0",
+  "vendor": "iDaddyCz",
+  "type": "web",
+  "main": "index.html",
+  "title": "HA PIP",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "resolution": "1920x1080",
+  "transparent": true,
+  "defaultWindowType": "overlay",
+  "disableBackHistoryAPI": true,
+  "requiredACG": []
+}

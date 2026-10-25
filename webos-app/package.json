@@ -1,0 +1,20 @@
+{
+  "name": "ha-lg-webos-pip-tv-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LG webOS TV overlay app that shows Home Assistant cameras as picture-in-picture",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check-ha.mjs",
+    "package": "npm run build && rm -rf dist && ares-package build -o dist",
+    "install-tv": "npm run package && ares-install -d ${TV:-tv} dist/*.ipk",
+    "launch": "ares-launch -d ${TV:-tv} io.github.idaddycz.lgwebospip",
+    "inspect": "ares-inspect -d ${TV:-tv} --app io.github.idaddycz.lgwebospip --open",
+    "mock": "node scripts/build.mjs --mock && node scripts/mock-ha.mjs"
+  },
+  "devDependencies": {
+    "hls.js": "^1.7.3",
+    "ws": "^8.22.0"
+  },
+  "license": "MIT"
+}

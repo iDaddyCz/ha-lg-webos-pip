@@ -1,0 +1,130 @@
+/* Designed for a 1920x1080 CSS viewport (see appinfo.json "resolution"). */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: "LG Smart UI", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  cursor: none;
+}
+
+.hidden { display: none !important; }
+
+/* --size is the PIP width as a fraction of the screen width (set from launch params). */
+.pip {
+  position: absolute;
+  width: calc(100vw * var(--size, 0.3));
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border: 3px solid rgba(255, 255, 255, .85);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, .6);
+  transition: opacity .3s ease;
+}
+.pip.top-right    { top: 48px;    right: 48px; }
+.pip.top-left     { top: 48px;    left: 48px; }
+.pip.bottom-right { bottom: 48px; right: 48px; }
+.pip.bottom-left  { bottom: 48px; left: 48px; }
+.pip.closing { opacity: 0; }
+
+/* When webOS gives us a window that is already PIP-sized, fill it. */
+.pip.fill { inset: 0; width: auto; aspect-ratio: auto; border-radius: 0; border: 0; }
+
+#video, #frame {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.label {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 28px 16px 10px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, .75));
+  color: #fff; font-size: 24px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.label:empty { display: none; }
+
+.error {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; text-align: center;
+  background: rgba(20, 24, 30, .92); color: #ffb4b4; font-size: 22px; line-height: 1.35;
+}
+
+.spinner {
+  position: absolute; left: 50%; top: 50%;
+  width: 64px; height: 64px; margin: -32px 0 0 -32px;
+  border: 6px solid rgba(255, 255, 255, .2); border-top-color: #18bcf2;
+  border-radius: 50%; animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error.info { color: #e8edf2; font-size: 26px; }
+
+/* ---------- setup screen ---------- */
+body.settings-open { cursor: default; }
+
+.settings {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(8, 11, 15, .96);
+  color: #e8edf2; font-size: 26px;
+}
+.settings .panel {
+  width: 1400px; max-height: 1020px; overflow: hidden;
+  padding: 36px 56px 28px; border-radius: 24px; background: #151b23;
+}
+.settings header { display: flex; align-items: baseline; gap: 24px; }
+.settings h1 { margin: 0; font-size: 42px; font-weight: 600; }
+.settings .version { color: #8b98a8; font-size: 22px; }
+.settings h2 { margin: 26px 0 10px; font-size: 26px; font-weight: 600; color: #18bcf2; }
+.settings h2 small { margin-left: 12px; font-size: 20px; font-weight: 400; color: #8b98a8; }
+
+.settings .row {
+  display: flex; align-items: center; gap: 24px;
+  min-height: 64px; padding: 6px 16px; margin: 4px 0;
+  border-radius: 12px;
+}
+.settings .row.focused { background: #1d2530; }
+.settings .row .name { flex: 0 0 360px; color: #b7c2cf; }
+.settings .row .value { flex: 1; }
+
+.settings input {
+  padding: 10px 16px; border: 3px solid #2a3442; border-radius: 10px; outline: none;
+  background: #0b0f14; color: #e8edf2; font-size: 26px; font-family: inherit;
+}
+.settings .choice .value {
+  padding: 10px 16px; border: 3px solid transparent; border-radius: 10px;
+}
+.settings .choice .value::before { content: "◀  "; color: #8b98a8; }
+.settings .choice .value::after { content: "  ▶"; color: #8b98a8; }
+
+.settings button {
+  min-width: 200px; padding: 12px 28px; border: 3px solid #2a3442; border-radius: 10px; outline: none;
+  background: #1d2530; color: #e8edf2; font-size: 26px; font-family: inherit; cursor: pointer;
+}
+.settings button.primary { background: #0e6f91; border-color: #0e6f91; }
+.settings .actions { margin-top: 18px; }
+.settings .focused:is(input, button, .value) { border-color: #fff; }
+
+.settings .status { color: #8b98a8; font-size: 22px; }
+.settings .status.ok { color: #3ccf7a; }
+.settings .status.bad { color: #ff7a7f; }
+
+.settings footer { display: flex; gap: 40px; margin-top: 22px; color: #8b98a8; font-size: 22px; }
+.settings .k {
+  display: inline-block; min-width: 40px; padding: 0 8px; margin-right: 8px;
+  border-radius: 6px; background: #1d2530; color: #e8edf2; text-align: center;
+}
+
+.toast {
+  position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%);
+  padding: 18px 36px; border-radius: 14px; background: rgba(20, 24, 30, .95);
+  color: #e8edf2; font-size: 28px; z-index: 10;
+}

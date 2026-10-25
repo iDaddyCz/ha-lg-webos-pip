@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HA PIP</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <!-- PIP: the page is transparent, only this box is drawn over the TV picture. -->
+  <div id="pip" class="pip top-right hidden">
+    <video id="video" playsinline class="hidden"></video>
+    <img id="frame" class="hidden" alt="">
+    <div id="spinner" class="spinner hidden"></div>
+    <div id="label" class="label"></div>
+    <div id="error" class="error hidden"></div>
+  </div>
+
+  <!-- Setup screen: opened from the TV's app list. -->
+  <section id="settings" class="settings hidden">
+    <div class="panel">
+      <header>
+        <h1>HA PIP setup</h1>
+        <span id="s-version" class="version"></span>
+      </header>
+
+      <h2>Home Assistant connection</h2>
+      <div class="row" data-key="url">
+        <span class="name">Home Assistant URL</span>
+        <input class="value" type="url" placeholder="http://homeassistant.local:8123" spellcheck="false">
+      </div>
+      <div class="row" data-key="token">
+        <span class="name">Long-lived access token</span>
+        <input class="value" type="password" placeholder="Type, paste via the LG ThinQ app, or send from HA" spellcheck="false">
+      </div>
+      <div class="row buttons">
+        <button data-action="test">Test connection</button>
+        <span id="s-status" class="status"></span>
+      </div>
+
+      <h2>Defaults <small>used when Home Assistant doesn't say otherwise</small></h2>
+      <div class="row choice" data-key="camera"><span class="name">Camera</span><span class="value"></span></div>
+      <div class="row choice" data-key="mode"><span class="name">Stream</span><span class="value"></span></div>
+      <div class="row choice" data-key="position"><span class="name">Position</span><span class="value"></span></div>
+      <div class="row choice" data-key="size"><span class="name">Size</span><span class="value"></span></div>
+      <div class="row choice" data-key="timeout"><span class="name">Close after</span><span class="value"></span></div>
+
+      <div class="row buttons actions">
+        <button data-action="save" class="primary">Save</button>
+        <button data-action="preview">Preview</button>
+        <button data-action="exit">Exit</button>
+      </div>
+
+      <footer>
+        <span><b class="k">▲▼</b> move</span>
+        <span><b class="k">◀▶</b> change</span>
+        <span><b class="k">OK</b> edit / select</span>
+        <span><b class="k">Back</b> exit</span>
+      </footer>
+    </div>
+  </section>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="config.js"></script>
+  <script src="lib/hls.min.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ha.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

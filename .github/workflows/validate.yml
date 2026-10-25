@@ -1,0 +1,24 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 4 * * 1"
+
+jobs:
+  tv-app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: webos-app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm install -g @webos-tools/cli
+      - run: for f in app/js/*.js scripts/*.mjs; do node --check "$f"; done
+      - run: npm run package
