@@ -1,0 +1,10 @@
+node_modules/
+build/
+dist/
+.env
+.mock/
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
