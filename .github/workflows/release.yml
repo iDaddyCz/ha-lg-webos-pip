@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  tv-app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: webos-app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm install -g @webos-tools/cli
+      - name: Set app version from the release tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          node -e "const f='app/appinfo.json',a=require('./'+f);a.version='$version';require('fs').writeFileSync(f,JSON.stringify(a,null,2)+'\n')"
+      - run: npm run package
+      - run: gh release upload "$GITHUB_REF_NAME" dist/*.ipk --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
