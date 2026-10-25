@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 
 from homeassistant.const import ATTR_ENTITY_ID
@@ -10,6 +12,8 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.lg_webos_pip.const import CONF_TOKEN, DOMAIN
+
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .conftest import CAMERA, DOORBELL, TV, make_entry, setup_entry
 
@@ -70,6 +74,57 @@ async def test_tv_off_buttons_say_so(hass: HomeAssistant, tv, webos_calls) -> No
         with pytest.raises(HomeAssistantError, match="is off"):
             await hass.services.async_call("button", "press", {ATTR_ENTITY_ID: button}, blocking=True)
     assert webos_calls == []
+
+
+def webos_tv_entry(hass: HomeAssistant) -> MockConfigEntry:
+    """Attach the TV entity to a webOS TV config entry, as the real integration does."""
+    tv_entry = MockConfigEntry(domain="webostv", unique_id="tv-uuid")
+    tv_entry.add_to_hass(hass)
+    er.async_get(hass).async_update_entity(TV, config_entry_id=tv_entry.entry_id)
+    return tv_entry
+
+
+def set_screen(tv_entry: MockConfigEntry, on: bool) -> None:
+    tv_entry.runtime_data = SimpleNamespace(client=SimpleNamespace(tv_state=SimpleNamespace(is_screen_on=on)))
+
+
+async def test_screen_off_counts_as_off(hass: HomeAssistant, tv, webos_calls) -> None:
+    entry = await setup_entry(hass, make_entry())
+    tv_entry = webos_tv_entry(hass)
+    set_screen(tv_entry, False)
+    await ring(hass)
+    await hass.services.async_call(DOMAIN, "show", {"camera": CAMERA}, blocking=True)
+    reg = er.async_get(hass)
+    for unique_id in (f"{next(iter(entry.subentries))}_test", f"{entry.entry_id}_send_connection",
+                      f"{entry.entry_id}_open_setup"):
+        button = reg.async_get_entity_id("button", DOMAIN, unique_id)
+        with pytest.raises(HomeAssistantError, match="screen turned off"):
+            await hass.services.async_call("button", "press", {ATTR_ENTITY_ID: button}, blocking=True)
+    assert webos_calls == []
+
+    # closing a PIP that is still open shows nothing, so it goes through
+    await hass.services.async_call(DOMAIN, "close", {}, blocking=True)
+    assert launched(webos_calls) == [{"close": True}]
+
+    set_screen(tv_entry, True)
+    await ring(hass, state="off")
+    await ring(hass)
+    assert launched(webos_calls)[1:] == [EXPECTED_PIP]
+
+
+async def test_screen_off_from_screen_switch(hass: HomeAssistant, tv, webos_calls) -> None:
+    """Without the client's state (older HA), the webOS TV screen switch decides."""
+    await setup_entry(hass, make_entry())
+    webos_tv_entry(hass)
+    er.async_get(hass).async_get_or_create("switch", "webostv", "tv-uuid_screen", suggested_object_id="lg_g4_screen")
+    hass.states.async_set("switch.lg_g4_screen", "off")
+    await ring(hass)
+    assert webos_calls == []
+
+    hass.states.async_set("switch.lg_g4_screen", "unavailable")
+    await ring(hass, state="off")
+    await ring(hass)
+    assert launched(webos_calls) == [EXPECTED_PIP]
 
 
 async def test_event_entity_fires_on_each_event(hass: HomeAssistant, tv, webos_calls) -> None:
