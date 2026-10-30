@@ -1,6 +1,6 @@
 {
   "name": "ha-lg-webos-pip-tv-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "LG webOS TV overlay app that shows Home Assistant cameras as picture-in-picture",
   "scripts": {
