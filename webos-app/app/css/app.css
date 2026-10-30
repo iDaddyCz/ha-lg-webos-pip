@@ -13,11 +13,11 @@ html, body {
 
 .hidden { display: none !important; }
 
-/* --size is the PIP width as a fraction of the screen width (set from launch params). */
+/* JS sets the requested width and height. These defaults also work on webOS 22. */
 .pip {
   position: absolute;
-  width: calc(100vw * var(--size, 0.3));
-  aspect-ratio: 16 / 9;
+  width: 30vw;
+  height: 16.875vw;
   background: #000;
   border: 3px solid rgba(255, 255, 255, .85);
   border-radius: 14px;
@@ -32,7 +32,7 @@ html, body {
 .pip.closing { opacity: 0; }
 
 /* When webOS gives us a window that is already PIP-sized, fill it. */
-.pip.fill { inset: 0; width: auto; aspect-ratio: auto; border-radius: 0; border: 0; }
+.pip.fill { inset: 0; width: auto; height: auto; border-radius: 0; border: 0; }
 
 #video, #frame {
   position: absolute; inset: 0;
@@ -111,7 +111,7 @@ body.settings-open { cursor: default; }
 }
 .settings button.primary { background: #0e6f91; border-color: #0e6f91; }
 .settings .actions { margin-top: 18px; }
-.settings .focused:is(input, button, .value) { border-color: #fff; }
+.settings input.focused, .settings button.focused, .settings .choice .value.focused { border-color: #fff; }
 
 .settings .status { color: #8b98a8; font-size: 22px; }
 .settings .status.ok { color: #3ccf7a; }

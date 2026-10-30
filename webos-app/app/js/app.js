@@ -38,9 +38,10 @@
 
   var player = new Player(video, document.getElementById('frame'), function (state, info) {
     spinner.classList.toggle('hidden', state !== 'loading');
-    // Size the box to the feed (e.g. 4:3 doorbells) instead of letterboxing in 16:9.
-    if (state === 'playing' && info.width && info.height) {
-      pip.style.aspectRatio = info.width + ' / ' + info.height;
+    // Size the box to the feed (e.g. 4:3 doorbells) without CSS aspect-ratio,
+    // which is unavailable in the Chromium 87 engine used by webOS 22.
+    if (state === 'playing' && info.width && info.height && !pip.classList.contains('fill')) {
+      pip.style.height = Math.round(pip.getBoundingClientRect().width * info.height / info.width) + 'px';
     }
   });
 
@@ -130,10 +131,12 @@
     hideError();
     pip.classList.remove('hidden', 'closing');
     POSITIONS.forEach(function (p) { pip.classList.toggle(p, p === opts.position); });
-    pip.style.setProperty('--size', opts.size);
-    pip.style.aspectRatio = '';
-    // If webOS sized the overlay window itself, just fill it.
-    pip.classList.toggle('fill', !!webos && window.innerWidth < 1200);
+    // If webOS sized the overlay window itself, fill it. Otherwise give the box
+    // explicit dimensions so older webOS engines cannot collapse it to a bar.
+    var fill = !!webos && window.innerWidth < 1200;
+    pip.classList.toggle('fill', fill);
+    pip.style.width = fill ? '' : Math.round(window.innerWidth * opts.size) + 'px';
+    pip.style.height = fill ? '' : Math.round(window.innerWidth * opts.size * 9 / 16) + 'px';
     if (opts.timeout > 0) closeTimer = setTimeout(closePip, opts.timeout * 1000);
   }
 
