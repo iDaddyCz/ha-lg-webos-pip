@@ -17,6 +17,8 @@ html, body {
 .pip {
   position: absolute;
   width: calc(100vw * var(--size, 0.3));
+  /* Explicit 16:9 height; aspect-ratio is unsupported on older webOS (Chromium < 88). */
+  height: calc(100vw * var(--size, 0.3) * 0.5625);
   aspect-ratio: 16 / 9;
   background: #000;
   border: 3px solid rgba(255, 255, 255, .85);
@@ -32,7 +34,7 @@ html, body {
 .pip.closing { opacity: 0; }
 
 /* When webOS gives us a window that is already PIP-sized, fill it. */
-.pip.fill { inset: 0; width: auto; aspect-ratio: auto; border-radius: 0; border: 0; }
+.pip.fill { top: 0; right: 0; bottom: 0; left: 0; inset: 0; width: auto; height: auto; aspect-ratio: auto; border-radius: 0; border: 0; }
 
 #video, #frame {
   position: absolute; inset: 0;
