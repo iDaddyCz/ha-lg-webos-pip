@@ -1,4 +1,6 @@
-/* Designed for a 1920x1080 CSS viewport (see appinfo.json "resolution"). */
+/* Designed for a 1920x1080 CSS viewport (see appinfo.json "resolution").
+   Keep to Chromium 79 (webOS 6): no aspect-ratio (88), inset (87),
+   :is() (88) or flex gap (84). */
 * { box-sizing: border-box; }
 
 html, body {
@@ -16,8 +18,10 @@ html, body {
 /* --size is the PIP width as a fraction of the screen width (set from launch params). */
 .pip {
   position: absolute;
+  /* No aspect-ratio: webOS 6 runs Chromium 79 (aspect-ratio needs 88), so the
+     height is derived from the width. --ratio is height/width, set per feed. */
   width: calc(100vw * var(--size, 0.3));
-  aspect-ratio: 16 / 9;
+  height: calc(100vw * var(--size, 0.3) * var(--ratio, 0.5625));
   background: #000;
   border: 3px solid rgba(255, 255, 255, .85);
   border-radius: 14px;
@@ -32,10 +36,10 @@ html, body {
 .pip.closing { opacity: 0; }
 
 /* When webOS gives us a window that is already PIP-sized, fill it. */
-.pip.fill { inset: 0; width: auto; aspect-ratio: auto; border-radius: 0; border: 0; }
+.pip.fill { top: 0; right: 0; bottom: 0; left: 0; width: auto; height: auto; border-radius: 0; border: 0; }
 
 #video, #frame {
-  position: absolute; inset: 0;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
   width: 100%; height: 100%;
   object-fit: contain;
   background: #000;
@@ -51,7 +55,7 @@ html, body {
 .label:empty { display: none; }
 
 .error {
-  position: absolute; inset: 0;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
   display: flex; align-items: center; justify-content: center;
   padding: 24px; text-align: center;
   background: rgba(20, 24, 30, .92); color: #ffb4b4; font-size: 22px; line-height: 1.35;
@@ -71,7 +75,7 @@ html, body {
 body.settings-open { cursor: default; }
 
 .settings {
-  position: absolute; inset: 0;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
   display: flex; align-items: center; justify-content: center;
   background: rgba(8, 11, 15, .96);
   color: #e8edf2; font-size: 26px;
@@ -80,17 +84,19 @@ body.settings-open { cursor: default; }
   width: 1400px; max-height: 1020px; overflow: hidden;
   padding: 36px 56px 28px; border-radius: 24px; background: #151b23;
 }
-.settings header { display: flex; align-items: baseline; gap: 24px; }
+.settings header { display: flex; align-items: baseline; }
+.settings header > * + * { margin-left: 24px; }
 .settings h1 { margin: 0; font-size: 42px; font-weight: 600; }
 .settings .version { color: #8b98a8; font-size: 22px; }
 .settings h2 { margin: 26px 0 10px; font-size: 26px; font-weight: 600; color: #18bcf2; }
 .settings h2 small { margin-left: 12px; font-size: 20px; font-weight: 400; color: #8b98a8; }
 
 .settings .row {
-  display: flex; align-items: center; gap: 24px;
+  display: flex; align-items: center;
   min-height: 64px; padding: 6px 16px; margin: 4px 0;
   border-radius: 12px;
 }
+.settings .row > * + * { margin-left: 24px; }
 .settings .row.focused { background: #1d2530; }
 .settings .row .name { flex: 0 0 360px; color: #b7c2cf; }
 .settings .row .value { flex: 1; }
@@ -111,13 +117,15 @@ body.settings-open { cursor: default; }
 }
 .settings button.primary { background: #0e6f91; border-color: #0e6f91; }
 .settings .actions { margin-top: 18px; }
-.settings .focused:is(input, button, .value) { border-color: #fff; }
+/* No :is() on Chromium 79. */
+.settings input.focused, .settings button.focused, .settings .value.focused { border-color: #fff; }
 
 .settings .status { color: #8b98a8; font-size: 22px; }
 .settings .status.ok { color: #3ccf7a; }
 .settings .status.bad { color: #ff7a7f; }
 
-.settings footer { display: flex; gap: 40px; margin-top: 22px; color: #8b98a8; font-size: 22px; }
+.settings footer { display: flex; margin-top: 22px; color: #8b98a8; font-size: 22px; }
+.settings footer > * + * { margin-left: 40px; }
 .settings .k {
   display: inline-block; min-width: 40px; padding: 0 8px; margin-right: 8px;
   border-radius: 6px; background: #1d2530; color: #e8edf2; text-align: center;

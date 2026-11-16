@@ -40,7 +40,7 @@
     spinner.classList.toggle('hidden', state !== 'loading');
     // Size the box to the feed (e.g. 4:3 doorbells) instead of letterboxing in 16:9.
     if (state === 'playing' && info.width && info.height) {
-      pip.style.aspectRatio = info.width + ' / ' + info.height;
+      pip.style.setProperty('--ratio', info.height / info.width);
     }
   });
 
@@ -131,7 +131,7 @@
     pip.classList.remove('hidden', 'closing');
     POSITIONS.forEach(function (p) { pip.classList.toggle(p, p === opts.position); });
     pip.style.setProperty('--size', opts.size);
-    pip.style.aspectRatio = '';
+    pip.style.removeProperty('--ratio');
     // If webOS sized the overlay window itself, just fill it.
     pip.classList.toggle('fill', !!webos && window.innerWidth < 1200);
     if (opts.timeout > 0) closeTimer = setTimeout(closePip, opts.timeout * 1000);
