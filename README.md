@@ -125,7 +125,7 @@ Each trigger gets its own device with:
 
 Edit a trigger later with its **⋮ → Reconfigure** menu.
 
-**Nothing is ever sent to a TV that is off.** Triggers and the `show` / `close` actions skip quietly, so automations don't fail. Buttons report that the TV is off.
+**Nothing is ever sent to a TV that is off** (its media player is `off`, `unavailable` or `unknown`; `playing`, `paused` and `idle` while an app plays media all count as on). Triggers and the `show` / `close` actions skip quietly, so automations don't fail. Buttons report that the TV is off.
 
 **Screen-off mode counts as off** (the TV is on with the picture turned off, e.g. for music). No PIP is shown then, since nobody would see it. Only `close` still goes through, so a PIP left open can be dismissed.
 

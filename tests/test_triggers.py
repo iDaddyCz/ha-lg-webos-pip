@@ -53,9 +53,19 @@ async def test_binary_sensor_on_shows_pip(hass: HomeAssistant, tv, webos_calls) 
     assert len(webos_calls) == 1
 
 
-async def test_tv_off_skips_triggers_and_actions(hass: HomeAssistant, tv, webos_calls) -> None:
+@pytest.mark.parametrize("tv_state", ["playing", "paused", "idle"])
+async def test_tv_playing_counts_as_on(hass: HomeAssistant, tv, webos_calls, tv_state: str) -> None:
+    """Netflix, YouTube etc. put the media player in a playback state, not `on`."""
     await setup_entry(hass, make_entry())
-    hass.states.async_set(TV, "off")
+    hass.states.async_set(TV, tv_state)
+    await ring(hass)
+    assert launched(webos_calls) == [EXPECTED_PIP]
+
+
+@pytest.mark.parametrize("tv_state", ["off", "unavailable", "unknown"])
+async def test_tv_off_skips_triggers_and_actions(hass: HomeAssistant, tv, webos_calls, tv_state: str) -> None:
+    await setup_entry(hass, make_entry())
+    hass.states.async_set(TV, tv_state)
     await ring(hass)
     # actions don't fail an automation, they just do nothing
     await hass.services.async_call(DOMAIN, "show", {"camera": CAMERA}, blocking=True)

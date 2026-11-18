@@ -67,8 +67,9 @@ class PipController:
 
     @property
     def tv_is_on(self) -> bool:
+        """The webOS TV media player is `playing`, `paused` or `idle` while an app plays media."""
         state = self.hass.states.get(self.tv_entity_id)
-        return state is not None and state.state == STATE_ON
+        return state is not None and state.state not in (STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN)
 
     @property
     def screen_is_off(self) -> bool:
