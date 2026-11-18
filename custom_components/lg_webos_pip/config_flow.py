@@ -19,6 +19,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.helpers.selector import (
+    BooleanSelector,
     EntitySelector,
     EntitySelectorConfig,
     NumberSelector,
@@ -34,6 +35,7 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     CONF_APP_ID,
+    CONF_BACKGROUND,
     CONF_CAMERA,
     CONF_HA_URL,
     CONF_MODE,
@@ -47,6 +49,7 @@ from .const import (
     CONF_TV,
     CONF_URL,
     DEFAULT_APP_ID,
+    DEFAULT_BACKGROUND,
     DEFAULT_MODE,
     DEFAULT_POSITION,
     DEFAULT_SIZE,
@@ -99,6 +102,7 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(CONF_POSITION, default=DEFAULT_POSITION): POSITION_SELECTOR,
         vol.Required(CONF_SIZE, default=DEFAULT_SIZE): SIZE_SELECTOR,
         vol.Required(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): TIMEOUT_SELECTOR,
+        vol.Required(CONF_BACKGROUND, default=DEFAULT_BACKGROUND): BooleanSelector(),
         vol.Required(CONF_APP_ID, default=DEFAULT_APP_ID): TEXT,
     }
 )

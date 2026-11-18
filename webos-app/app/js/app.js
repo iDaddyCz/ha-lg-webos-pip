@@ -9,7 +9,11 @@
  *   {close: true}                     hide the PIP
  *   {connect: {url, token}}           store the HA connection on the TV
  *                                     (may be combined with a camera)
+ *   {standby: true}                   start (or stay) running in the background
  *   {} / {settings: true}             open the setup screen (app list launch)
+ *
+ * The app stays running after the PIP closes (see window.js): launching an
+ * app stops the video in the app in front, relaunching a running one doesn't.
  */
 (function () {
   'use strict';
@@ -94,6 +98,10 @@
       Settings.close();
       returnToSettings = false;
       show(params, Store.get());
+    } else if (params.standby) {
+      // Started in the background (e.g. the TV just turned on): stay out of
+      // sight, but leave an open setup screen or PIP alone.
+      if (!Settings.isOpen() && pip.classList.contains('hidden')) AppWindow.passive();
     } else if (params.connect) {
       if (Settings.isOpen()) {
         openSettings(); // reload the form with the pushed connection
@@ -140,6 +148,8 @@
   function show(params, settings) {
     var opts = resolve(params, settings);
     var id = ++showId;
+    // A preview from the setup screen keeps the remote, so OK/Back close it.
+    if (!returnToSettings) AppWindow.passive();
     player.stop();
     preparePip(opts);
     video.muted = opts.muted;
@@ -172,6 +182,7 @@
   /** A text-only PIP, e.g. after Home Assistant pushed the connection settings. */
   function notice(text, seconds) {
     showId++;
+    AppWindow.passive();
     player.stop();
     var s = Store.get();
     preparePip(resolve({ timeout: seconds }, s));
@@ -194,7 +205,7 @@
         returnToSettings = false;
         Settings.resume();
       } else {
-        exitApp();
+        AppWindow.passive(); // stay running, out of sight
       }
     }, 300);
   }
@@ -218,10 +229,11 @@
     clearTimeout(retryTimer);
     player.stop();
     pip.classList.add('hidden');
+    AppWindow.interactive();
     Settings.open({
       version: (appInfo.title || 'HA PIP') + ' ' + (appInfo.version || ''),
       toast: showToast,
-      onExit: exitApp,
+      onExit: exitSetup,
       onPreview: function (draft) {
         Settings.hide();
         returnToSettings = true;
@@ -238,11 +250,12 @@
     toastTimer = setTimeout(function () { toast.classList.add('hidden'); }, 2500);
   }
 
-  function exitApp() {
+  /** Leave the setup screen but keep running in the background. */
+  function exitSetup() {
     Settings.close();
-    if (ha) ha.close();
-    ha = null;
-    if (webos && typeof webos.close === 'function') webos.close();
+    AppWindow.passive();
+    if (webos && typeof webos.hide === 'function') webos.hide();
+    else if (webos && typeof webos.close === 'function') webos.close();
     else window.close();
   }
 
@@ -256,8 +269,9 @@
     route(parseParams(e.detail || (webos && webos.launchParams)));
   });
 
-  // The overlay window takes the remote while it's open: in setup the keys
-  // drive the form; over a PIP, Back or OK dismisses it.
+  // Keys only arrive while the window takes the remote: in setup they drive
+  // the form; over a preview, Back or OK dismisses it. A passive PIP over
+  // another app gets no keys, so it closes on its timeout or from HA.
   document.addEventListener('keydown', function (e) {
     if (Settings.isOpen()) {
       if (Settings.handleKey(e)) e.preventDefault();

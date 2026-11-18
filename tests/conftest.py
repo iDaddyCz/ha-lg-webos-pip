@@ -56,6 +56,7 @@ def make_entry(options: dict | None = None, **trigger: object) -> MockConfigEntr
         "size": 30,
         "timeout": 30,
         "app_id": "io.github.idaddycz.lgwebospip",
+        "background": False,  # tests/test_background.py covers it
     } | (options or {})
     return MockConfigEntry(
         domain=DOMAIN,

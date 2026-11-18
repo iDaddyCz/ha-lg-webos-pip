@@ -22,7 +22,8 @@ async def test_user_flow(hass: HomeAssistant, tv) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == "PIP on LG G4"
     assert result["data"] == {"tv": TV}
-    assert result["options"] == OPTIONS | {"ha_url": "http://10.0.0.2:8123", "size": 25, "timeout": 45}
+    assert result["options"] == OPTIONS | {"ha_url": "http://10.0.0.2:8123", "size": 25, "timeout": 45,
+                                           "background": True}
 
     # one entry per TV
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})

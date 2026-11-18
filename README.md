@@ -15,7 +15,7 @@ The repository has two parts that work together:
 
 | Part | Where | What it does |
 |---|---|---|
-| **HA PIP** TV app | [`webos-app/`](webos-app) | A webOS app that opens as a transparent overlay window and draws the PIP box. It has its own setup screen for the HA connection and defaults. |
+| **HA PIP** TV app | [`webos-app/`](webos-app) | A webOS app that stays running in the background and draws the PIP box in a transparent window. It has its own setup screen for the HA connection and defaults. |
 | **LG webOS PIP** integration | [`custom_components/lg_webos_pip/`](custom_components/lg_webos_pip) | A Home Assistant integration with a UI for choosing *what* to show, *when* (triggers), *where* and *for how long*. It launches the TV app through HA's built-in LG webOS TV integration. |
 
 Verified on an LG OLED G4 (webOS 24, firmware 43.21.73) in Developer Mode, without rooting.
@@ -24,9 +24,11 @@ Verified on an LG OLED G4 (webOS 24, firmware 43.21.73) in Developer Mode, witho
 
 1. A trigger fires in Home Assistant, e.g. the doorbell's binary sensor turns `on`.
 2. The integration calls `webostv.command` → `system.launcher/launch` with the HA PIP app ID and parameters: camera, position, size, timeout.
-3. The app opens as an **overlay window** (`"defaultWindowType": "overlay"`, `"transparent": true`). Only the PIP box is visible over the current picture.
+3. The app draws the PIP in a transparent, passive window (a private webOS window type that takes neither focus nor the remote). Only the PIP box is visible over the current picture, and the remote keeps controlling what you're watching.
 4. The app connects to Home Assistant's WebSocket API with a long-lived token and asks HA for a signed stream URL. MJPEG by default; HLS, WebRTC and snapshots are also available.
-5. After the timeout, or when you press **Back** / **OK**, the app closes and the TV is exactly as before.
+5. After the timeout the box disappears, and the app keeps running out of sight for the next PIP.
+
+**Why the app stays running:** launching any app makes webOS stop the app in front. YouTube, for one, unloads its video and leaves a black screen. Relaunching an app that's already running doesn't. So the integration starts the TV app in the background whenever the TV sits on its home screen, where that interrupts nothing, and every PIP after that is a relaunch. Turn this off with the **Keep the TV app running in the background** option.
 
 ## Requirements
 
@@ -103,6 +105,7 @@ Then go to **Settings → Devices & services → Add integration → LG webOS PI
 | Home Assistant URL as seen from the TV | prefilled with your internal URL |
 | Long-lived access token for the TV app | optional; when set, it's sent to the TV app with every launch |
 | Default stream type / position / size / close after | defaults for this TV |
+| Keep the TV app running in the background | on by default; see [How it works](#how-it-works) |
 | TV app ID | leave as is unless you built the app with another ID |
 
 Everything except the TV can be changed later with **Configure**.
@@ -203,13 +206,15 @@ data:
 | `refresh` | ms between stills in `snapshot` mode (default 500) |
 | `close: true` | close the PIP |
 | `connect: {url, token}` | store the HA connection on the TV |
+| `standby: true` | start (or keep) the app running in the background without showing anything |
 | `settings: true` (or no params) | open the setup screen |
 
 Launching again while the PIP is open swaps the feed and restarts the timer.
 
 ## Good to know
 
-- **While the PIP is visible it has the remote's focus.** Arrow keys go to the PIP rather than the app underneath, and **Back** or **OK** close it. Keep timeouts short for popups.
+- **The PIP doesn't take the remote.** Keys keep controlling what you're watching, so the PIP closes on its timeout, with the **Close PIP** button or with the `close` action. Keep timeouts short for popups. Only a **Preview** from the setup screen closes with **Back** or **OK**.
+- **The first PIP after the app was closed can still stop a video.** That happens if the TV went straight into an app at power-on, without showing its home screen, or if webOS closed the background app. Once the TV shows its home screen, the app runs in the background again.
 - If HA or the camera doesn't answer, the PIP shows the error and retries every 3 s until it times out.
 - The token is stored in the TV app's local storage, and in the integration's options if you entered it there.
 
@@ -221,6 +226,7 @@ Launching again while the PIP is open swaps the feed and restarts the timer.
 | "The LG webOS TV integration is not set up" | Set up HA's LG webOS TV integration and make sure the TV is paired. |
 | PIP shows "Not set up yet" | Enter the URL and token in the integration and press **Send connection to TV**, or use the TV setup screen. |
 | "Authentication failed" | The token was deleted or mistyped. Create a new one. |
+| A video stops (black screen) when the PIP appears | The TV app wasn't running yet. Check the **Keep the TV app running in the background** option, and go to the TV's home screen once after turning it on. |
 | Black box, spinner forever | Try `mode: snapshot`. Check that the TV can reach the HA URL (not `homeassistant.local` unless the TV resolves it). |
 | App vanished from the TV | The Developer Mode session expired. Extend it and reinstall the app. |
 | `ares-novacom --getkey` fails | Turn **Key Server** on in the Developer Mode app. |

@@ -12,6 +12,7 @@
           "position": "Default position",
           "size": "Default size",
           "timeout": "Default close after",
+          "background": "Keep the TV app running in the background",
           "app_id": "TV app ID"
         },
         "data_description": {
@@ -20,6 +21,7 @@
           "mode": "MJPEG works best over live TV. HLS and WebRTC need a second video decoder, which depends on the TV.",
           "size": "PIP width as a percentage of the screen width.",
           "timeout": "Seconds until the PIP closes itself. 0 keeps it open until closed.",
+          "background": "Starts the TV app out of sight whenever the TV shows its home screen. Then a PIP doesn't stop the video in YouTube and other apps; launching the app does.",
           "app_id": "Only change this if you built the TV app with a different ID."
         }
       }
@@ -40,6 +42,7 @@
           "position": "[%key:component::lg_webos_pip::config::step::user::data::position%]",
           "size": "[%key:component::lg_webos_pip::config::step::user::data::size%]",
           "timeout": "[%key:component::lg_webos_pip::config::step::user::data::timeout%]",
+          "background": "[%key:component::lg_webos_pip::config::step::user::data::background%]",
           "app_id": "[%key:component::lg_webos_pip::config::step::user::data::app_id%]"
         },
         "data_description": {
@@ -48,6 +51,7 @@
           "mode": "[%key:component::lg_webos_pip::config::step::user::data_description::mode%]",
           "size": "[%key:component::lg_webos_pip::config::step::user::data_description::size%]",
           "timeout": "[%key:component::lg_webos_pip::config::step::user::data_description::timeout%]",
+          "background": "[%key:component::lg_webos_pip::config::step::user::data_description::background%]",
           "app_id": "[%key:component::lg_webos_pip::config::step::user::data_description::app_id%]"
         }
       }

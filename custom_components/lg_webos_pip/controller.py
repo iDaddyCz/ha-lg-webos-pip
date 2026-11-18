@@ -8,13 +8,15 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry, ConfigSubentry
 from homeassistant.const import ATTR_ENTITY_ID, STATE_OFF, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
-from homeassistant.core import Event, EventStateChangedData, HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, Event, EventStateChangedData, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import async_call_later, async_track_state_change_event
 
 from .const import (
+    BACKGROUND_DELAY,
     CONF_APP_ID,
+    CONF_BACKGROUND,
     CONF_CAMERA,
     CONF_HA_URL,
     CONF_MODE,
@@ -29,10 +31,12 @@ from .const import (
     CONF_TV,
     CONF_URL,
     DEFAULT_APP_ID,
+    DEFAULT_BACKGROUND,
     DEFAULT_MODE,
     DEFAULT_POSITION,
     DEFAULT_SIZE,
     DEFAULT_TIMEOUT,
+    HOME_APP_ID,
     ON_STATE_DOMAINS,
     WEBOSTV_DOMAIN,
 )
@@ -52,6 +56,9 @@ class PipController:
         self.triggers: dict[str, PipTrigger] = {
             subentry_id: PipTrigger(self, subentry) for subentry_id, subentry in entry.subentries.items()
         }
+        self._unsub_tv: CALLBACK_TYPE | None = None
+        self._background_timer: CALLBACK_TYPE | None = None
+        self._was_on_home_screen = False
 
     @property
     def _config(self) -> dict[str, Any]:
@@ -71,25 +78,47 @@ class PipController:
         state = self.hass.states.get(self.tv_entity_id)
         return state is not None and state.state not in (STATE_OFF, STATE_UNAVAILABLE, STATE_UNKNOWN)
 
+    def _tv_entry(self) -> ConfigEntry | None:
+        """The webOS TV integration's config entry for this TV."""
+        tv = er.async_get(self.hass).async_get(self.tv_entity_id)
+        if tv is None or tv.config_entry_id is None:
+            return None
+        return self.hass.config_entries.async_get_entry(tv.config_entry_id)
+
+    @staticmethod
+    def _tv_state(tv_entry: ConfigEntry) -> Any:
+        """The state the webOS TV integration's client tracks (aiowebostv TvState), if reachable."""
+        client = getattr(getattr(tv_entry, "runtime_data", None), "client", None)
+        return getattr(client, "tv_state", None)
+
     @property
     def screen_is_off(self) -> bool:
         """True in the TV's screen-off mode: the TV is on, but the picture is off."""
-        registry = er.async_get(self.hass)
-        tv = registry.async_get(self.tv_entity_id)
-        if tv is None or tv.config_entry_id is None:
-            return False
-        tv_entry = self.hass.config_entries.async_get_entry(tv.config_entry_id)
+        tv_entry = self._tv_entry()
         if tv_entry is None:
             return False
         # The webOS TV integration tracks it on its client...
-        client = getattr(getattr(tv_entry, "runtime_data", None), "client", None)
-        is_screen_on = getattr(getattr(client, "tv_state", None), "is_screen_on", None)
+        is_screen_on = getattr(self._tv_state(tv_entry), "is_screen_on", None)
         if is_screen_on is not None:
             return not is_screen_on
         # ...and shows it as a screen switch (disabled by default).
+        registry = er.async_get(self.hass)
         switch = registry.async_get_entity_id("switch", WEBOSTV_DOMAIN, f"{tv_entry.unique_id}_screen")
         state = self.hass.states.get(switch) if switch else None
         return state is not None and state.state == STATE_OFF
+
+    @property
+    def on_home_screen(self) -> bool:
+        """True while the TV shows its home screen, where launching an app interrupts nothing."""
+        state = self.hass.states.get(self.tv_entity_id)
+        if state is None or state.state != STATE_ON or self.screen_is_off:
+            return False
+        tv_entry = self._tv_entry()
+        app_id = getattr(self._tv_state(tv_entry), "current_app_id", None) if tv_entry else None
+        if app_id is not None:
+            return app_id == HOME_APP_ID
+        # Without the client: the media player names no source on the home screen.
+        return not state.attributes.get("source")
 
     def _connection(self) -> dict[str, str] | None:
         """URL + token for the TV app, if the user stored a token here."""
@@ -170,6 +199,63 @@ class PipController:
 
     async def async_open_setup(self) -> None:
         await self._launch({"settings": True}, raise_if_off=True)
+
+    # ---------- the TV app in the background ----------
+    #
+    # Launching an app makes webOS stop the one in front (YouTube unloads its
+    # video); relaunching a running app doesn't. So the TV app is started in
+    # the background whenever the TV sits on its home screen, and later PIPs
+    # are relaunches. See webos-app/app/js/window.js.
+
+    @callback
+    def async_start_background(self) -> None:
+        if not self._config.get(CONF_BACKGROUND, DEFAULT_BACKGROUND):
+            return
+        self._unsub_tv = async_track_state_change_event(self.hass, [self.tv_entity_id], self._handle_tv_change)
+        self._update_background()
+
+    @callback
+    def async_stop_background(self) -> None:
+        if self._unsub_tv:
+            self._unsub_tv()
+            self._unsub_tv = None
+        self._cancel_background_timer()
+
+    @callback
+    def _cancel_background_timer(self) -> None:
+        if self._background_timer:
+            self._background_timer()
+            self._background_timer = None
+
+    @callback
+    def _handle_tv_change(self, event: Event[EventStateChangedData]) -> None:
+        self._update_background()
+
+    @callback
+    def _update_background(self) -> None:
+        """Start the app once the TV has been on its home screen for a moment."""
+        on_home = self.on_home_screen
+        if on_home and not self._was_on_home_screen:
+            self._cancel_background_timer()
+            self._background_timer = async_call_later(self.hass, BACKGROUND_DELAY, self._background_due)
+        elif not on_home:
+            self._cancel_background_timer()
+        self._was_on_home_screen = on_home
+
+    @callback
+    def _background_due(self, _now: Any) -> None:
+        self._background_timer = None
+        if self.on_home_screen:
+            self.hass.async_create_task(self.async_start_in_background(), f"Start {self.app_id} in the background")
+
+    async def async_start_in_background(self) -> None:
+        params: dict[str, Any] = {"standby": True}
+        if connection := self._connection():
+            params["connect"] = connection
+        try:
+            await self._launch(params, raise_if_off=False)
+        except HomeAssistantError as err:
+            _LOGGER.debug("Could not start %s in the background: %s", self.app_id, err)
 
     # ---------- triggers ----------
 

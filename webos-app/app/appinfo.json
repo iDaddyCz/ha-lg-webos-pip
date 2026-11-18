@@ -9,7 +9,10 @@
   "largeIcon": "largeIcon.png",
   "resolution": "1920x1080",
   "transparent": true,
-  "defaultWindowType": "overlay",
+  "defaultWindowType": "card",
+  "handlesRelaunch": true,
+  "noSplashOnLaunch": true,
+  "spinnerOnLaunch": false,
   "disableBackHistoryAPI": true,
   "requiredACG": []
 }

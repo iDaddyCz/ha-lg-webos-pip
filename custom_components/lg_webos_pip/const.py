@@ -14,6 +14,7 @@ CONF_TV: Final = "tv"
 CONF_APP_ID: Final = "app_id"
 CONF_HA_URL: Final = "ha_url"
 CONF_TOKEN: Final = "token"
+CONF_BACKGROUND: Final = "background"
 
 # PIP display options (entry defaults, trigger overrides, action fields)
 CONF_CAMERA: Final = "camera"
@@ -37,6 +38,12 @@ DEFAULT_MODE: Final = "mjpeg"
 DEFAULT_POSITION: Final = "top-right"
 DEFAULT_SIZE: Final = 30
 DEFAULT_TIMEOUT: Final = 30
+DEFAULT_BACKGROUND: Final = True
+
+# The TV app is started in the background once the TV has shown its home
+# screen this long, so launching it interrupts nothing.
+HOME_APP_ID: Final = "com.webos.app.home"
+BACKGROUND_DELAY: Final = 3
 
 # Without an explicit trigger state, these domains fire when they turn "on";
 # everything else (e.g. event entities) fires on any state change.

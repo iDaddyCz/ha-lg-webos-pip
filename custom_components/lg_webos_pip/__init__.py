@@ -93,6 +93,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: LgWebosPipConfigEntry) -
     # Started only after the switches have restored each trigger's enabled state.
     controller.async_start_triggers()
     entry.async_on_unload(controller.async_stop_triggers)
+    controller.async_start_background()
+    entry.async_on_unload(controller.async_stop_background)
     entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
 
