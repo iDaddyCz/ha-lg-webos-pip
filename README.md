@@ -32,10 +32,23 @@ Verified on an LG OLED G4 (webOS 24, firmware 43.21.73) in Developer Mode, witho
 
 ## Requirements
 
-- An LG webOS TV with the **LG webOS TV** integration set up in Home Assistant. Tested: G4 / webOS 24. Older webOS versions may work, untested.
+- An LG webOS TV with the **LG webOS TV** integration set up in Home Assistant. See [Tested TVs](#tested-tvs).
 - Home Assistant **2025.3** or newer.
 - To install the TV app: the free **Developer Mode** app on the TV and an LG developer account. See [Install the TV app](#1-install-the-tv-app).
 - A computer with Node.js 18+ for the webOS CLI.
+
+### Tested TVs
+
+| TV | Firmware | Result | Reported in |
+|---|---|---|---|
+| OLED83G45LW (G4, 2024) | 43.21.96 | MJPEG and WebRTC (UniFi doorbell); a PIP over YouTube keeps it playing | maintainer |
+| OLED65G4 (G4, 2024) | 23.23.30 | Works with MJPEG | #7 |
+| 32LR60006LA | 13.50.35 | Works | #8 |
+| webOS 22 TV | | Works after the PIP sizing fix | #6 |
+| C8 (2018, webOS 4) | | MJPEG works with a CSS sizing fix that #6 has since replaced; not retested | #10 |
+| G4 (2024) | | WebRTC with a Nest Hello doorbell | #10 |
+
+Tried it on another model? Open an issue with the model, firmware and what worked, and it'll be added here.
 
 ## Setup
 
